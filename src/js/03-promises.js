@@ -23,10 +23,7 @@
 
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-const refs = {
-  inputFormData: document.querySelector('.form'),
-};
-let { inputFormData } = refs;
+const inputFormData = document.querySelector('.form');
 
 inputFormData.addEventListener('submit', startCreatePromises);
 
