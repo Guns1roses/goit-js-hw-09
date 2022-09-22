@@ -60,70 +60,65 @@ import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-const btnStartRef = document.querySelector('[data-start]');
-const spanDaysRef = document.querySelector('[data-days]');
-const spanHoursRef = document.querySelector('[data-hours]');
-const spanMinutesf = document.querySelector('[data-minutes');
-const spanSecondsRef = document.querySelector('[data-seconds]');
+const inputEl = document.querySelector("#datetime-picker");
 
-let msSelected = null;
-let idInterval = null;
+const elDATA = {
+    btnStart: document.querySelector('[data-start]'),
+    dataDays: document.querySelector('[data-days]'),
+    dataHours: document.querySelector('[data-hours]'),
+    dataMinutes: document.querySelector('[data-minutes]'),
+    dataSeconds: document.querySelector('[data-seconds]'),
+}
+const { btnStart, dataDays, dataHours, dataMinutes, dataSeconds } = elDATA;
 
-btnStartRef.disabled = true;
+let timerId = null;
+changeDisableBtn(btnStart, true);
 
-const options = {
+const optionsFlatpickr = {
     enableTime: true,
     time_24hr: true,
     defaultDate: new Date(),
     minuteIncrement: 1,
-    
     onClose(selectedDates) {
-        msSelected = selectedDates[0].getTime();
-        if (msSelected < new Date()) {
-            Notify.failure('Please choose a date in the future.')
-            return;
+        if (selectedDates[0].getTime() < Date.now()) {
+            return Notify.failure("Please choose a date in the future");
         }
-        btnStartRef.classList.add('btn');
-        btnStartRef.disabled = false;
+        changeDisableBtn(btnStart, false);
     },
 };
 
-flatpickr("#datetime-picker", options);
+const flatPickrForm = flatpickr(inputEl, optionsFlatpickr);
 
-let object = {};
 
-const onCountTime = () => {
-    idInterval = setInterval(() => {
-        const diff = msSelected - new Date().getTime();
-        if (diff <= 0) {
-            clearTimeout(idInterval);
-            return;
-        };
-    object = convertMs(diff);
-    onChangeContent(addLeadingZero(object));
-    }, 1000)
+function renderCounter() {
+    const remainingTime = getRemainingTime(flatPickrForm.selectedDates[0].getTime())
+
+    if (remainingTime < 1000) {
+        clearInterval(timerId);
+    }
+
+    dataDays.textContent = addLeadingZero(convertMs(remainingTime).days);
+    dataHours.textContent = addLeadingZero(convertMs(remainingTime).hours);
+    dataMinutes.textContent = addLeadingZero(convertMs(remainingTime).minutes);
+    dataSeconds.textContent = addLeadingZero(convertMs(remainingTime).seconds);
 }
 
-function addLeadingZero(values) {
-    const newValues = { ...values };
-    const keys = Object.keys(newValues)
-    for (const key of keys) {
-        newValues[key] = String(newValues[key]).padStart(2, 0)
-    } 
-    return newValues;
+function getRemainingTime(selectedTime) {
+    return selectedTime - Date.now();
 }
 
-
-function onChangeContent({ days, hours, minutes, seconds }) {
-    spanDaysRef.textContent = days;
-    spanHoursRef.textContent = hours;
-    spanMinutesf.textContent = minutes;
-    spanSecondsRef.textContent = seconds;
+function onTimerStart() {
+    Notify.success("Let's begin!");
+    changeDisableBtn(btnStart, true);
+    timerId = setInterval(renderCounter, 1000);
 }
+
+btnStart.addEventListener('click', onTimerStart);
+
 
 
 function convertMs(ms) {
-    
+    // Number of milliseconds per unit of time
     const second = 1000;
     const minute = second * 60;
     const hour = minute * 60;
@@ -141,4 +136,10 @@ function convertMs(ms) {
     return { days, hours, minutes, seconds };
 }
 
-btnStartRef.addEventListener("click", onCountTime);
+function changeDisableBtn(btnElement, status) {
+    btnElement.disabled = status;
+}
+
+function addLeadingZero(value) {
+    return String(value).padStart(2, '0');
+}
