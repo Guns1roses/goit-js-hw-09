@@ -23,20 +23,19 @@ function getRandomHexColor() {
     const startBtn = document.querySelector('[data-start]');
     const stopBtn = document.querySelector('[data-stop]');
 
-    let timerId = null;
-
+let timerId = null;
+    
 startBtn.addEventListener("click", () => {
-    stopBtn.disabled = false;
+    
     timerId = setInterval(() => {
     containerEl.style.backgroundColor = getRandomHexColor();
+    }, 1000);
     startBtn.disabled = true;
-    }, 2000);
+    stopBtn.disabled = false;
 });
 
-
 stopBtn.addEventListener("click", () => {
-    startBtn.disabled = false;
     clearInterval(timerId);
+    startBtn.disabled = false;
     stopBtn.disabled = true;
-    
 });
